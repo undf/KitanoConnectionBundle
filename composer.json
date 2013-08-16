@@ -1,5 +1,5 @@
 {
-    "name":         "kitano/connection-bundle",
+    "name":         "undf/connection-bundle",
     "description":  "Directed graph implementation to create any connection between two objects (ie. follower/following relation in a social network)",
     "keywords":     ["connection", "social", "friendship", "friends"],
     "type":         "symfony-bundle",
@@ -19,6 +19,10 @@
             "name":     "Valentin Ferriere",
             "email":    "valentin.ferriere@gmail.com",
             "homepage": "http://www.v-labs.fr"
+        },
+        {
+            "name":     "Dani Gonzalez",
+            "email":    "daniel.gonzalez@undefined.es"
         }
     ],
     "require": {

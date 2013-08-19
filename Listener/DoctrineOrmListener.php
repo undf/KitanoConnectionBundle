@@ -33,7 +33,7 @@ class DoctrineOrmListener implements EventSubscriber
 
         if ($entity instanceof NodeInterface) {
             if ($this->getConnectionManager()->hasConnections($entity)) {
-                $connections = $this->getConnectionManager()->getConnections($entity);
+                $connections = $this->getConnectionManager()->getConnections($entity, array(), true);
 
                 foreach ($connections as $connection) {
                     $eventArgs->getEntityManager()->remove($connection);

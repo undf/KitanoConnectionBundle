@@ -49,6 +49,41 @@ interface ConnectionInterface
     public function setType($type);
 
     /**
+     * Gets the number of nodes (distance) between the source and destination nodes
+     *
+     * @return integer
+     */
+    public function getDistance();
+
+    /**
+     * Sets the number of nodes (distance) between source and destination nodes
+     *
+     * @param integer $distance
+     */
+    public function setDistance($distance);
+
+    /**
+     * Get id's of all nodes between source and destination nodes
+     *
+     * @return array[]int
+     */
+    public function getLinkerNodes();
+
+    /**
+     * Set id's of all nodes between source and destination nodes
+     *
+     * @param array[]int $linkerNodes
+     */
+    public function setLinkerNodes(array $linkerNodes);
+
+    /**
+     * Add a node between source and destination nodes
+     *
+     * @param \Kitano\ConnectionBundle\Model\NodeInterface $node
+     */
+    public function addLinkerNode(NodeInterface $node);
+
+    /**
      * Returns the date the connection was initially created at
      *
      * @return \DateTime

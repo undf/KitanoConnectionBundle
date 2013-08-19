@@ -49,7 +49,7 @@ interface ConnectionManagerInterface
 
     /**
      * Check if source node is connect to destination node or vice-versa.
-     * 
+     *
      * @param NodeInterface $nodeA
      * @param NodeInterface $nodeB
      * @param array         $filters
@@ -61,7 +61,7 @@ interface ConnectionManagerInterface
     /**
      * Check if source node is connect to destination node.
      * Take care of the orientation.
-     * 
+     *
      * @param NodeInterface $source
      * @param NodeInterface $destination
      * @param array         $filters
@@ -69,7 +69,7 @@ interface ConnectionManagerInterface
      * @return boolean
      */
     public function isConnectedTo(NodeInterface $source, NodeInterface $destination, array $filters = array());
-    
+
     /**
      * @param NodeInterface $node
      * @param array         $filters
@@ -97,8 +97,9 @@ interface ConnectionManagerInterface
     /**
      * @param NodeInterface $node
      * @param array         $filters
+     * $param boolean       $includeIndirectConnections
      *
      * @return array|ConnectionInterface[]
      */
-    public function getConnections(NodeInterface $node, array $filters = array());
+    public function getConnections(NodeInterface $node, array $filters = array(), $includeIndirectConnections = false);
 }

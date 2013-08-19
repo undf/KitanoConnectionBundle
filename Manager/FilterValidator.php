@@ -24,15 +24,13 @@ class FilterValidator
     public function validateFilters(array &$filters)
     {
         $filterConstraint = new Collection(array(
-            'type' => array(
-                new NotBlank(),
-                new NotNull(),
-            ),
-            'depth' => new Type('integer'),
+            'type' => new Type('string'),
+            'distance' => new Type('integer'),
         ));
 
         $filtersDefault = array(
-            'depth' => 1,
+            'type' => '',
+            'distance' => 0,
         );
 
         $filters = array_merge($filtersDefault, $filters);

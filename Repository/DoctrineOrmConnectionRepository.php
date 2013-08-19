@@ -47,9 +47,14 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
         $queryBuilder->setParameter("objectClass", $objectClass);
         $queryBuilder->setParameter("objectId", $objectId);
 
-        if (array_key_exists('type', $filters)) {
+        if (array_key_exists('type', $filters) && $filters['type']) {
             $queryBuilder->andWhere("connection.type = :type");
             $queryBuilder->setParameter("type", $filters['type']);
+        }
+
+        if (array_key_exists('distance', $filters) && $filters['distance'] > 0) {
+            $queryBuilder->andWhere("connection.distance = :distance");
+            $queryBuilder->setParameter("distance", $filters['distance']);
         }
 
         $connections = $queryBuilder->getQuery()->getResult();
@@ -77,9 +82,14 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
         $queryBuilder->setParameter("objectClass", $objectClass);
         $queryBuilder->setParameter("objectId", $objectId);
 
-        if (array_key_exists('type', $filters)) {
+        if (array_key_exists('type', $filters) && $filters['type']) {
             $queryBuilder->andWhere("connection.type = :type");
             $queryBuilder->setParameter("type", $filters['type']);
+        }
+
+        if (array_key_exists('distance', $filters) && $filters['distance'] > 0) {
+            $queryBuilder->andWhere("connection.distance = :distance");
+            $queryBuilder->setParameter("distance", $filters['distance']);
         }
 
         $connections = $queryBuilder->getQuery()->getResult();
@@ -94,25 +104,75 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
     /**
      * @{@inheritDoc}
      */
-    public function getConnections(NodeInterface $node, array $filters = array())
+    public function getConnections(NodeInterface $node, array $filters = array(), $includeIndirectConnections = false)
     {
         $nodeInformations = $this->extractMetadata($node);
 
         $queryBuilder = $this->createQueryBuilder('connection');
 
-        $queryBuilder->select('connection')
-            ->where(
+        $queryBuilder->select('connection');
+        if($includeIndirectConnections) {
+            $queryBuilder->where(
                 $queryBuilder->expr()->orX(
+                    "connection.linkerNodes LIKE :linkerNodes",
                     $queryBuilder->expr()->andX("connection.sourceObjectId = :nodeId", "connection.sourceObjectClass = :nodeClass"),
                     $queryBuilder->expr()->andX("connection.destinationObjectId = :nodeId", "connection.destinationObjectClass = :nodeClass")
                 )
-            )
-        ->setParameters(array(
-            'nodeClass' => $nodeInformations['object_class'],
-            'nodeId' => $nodeInformations['object_id'],
-        ));
+            );
+            $queryBuilder->setParameter('linkerNodes', '%:'.$node->getId().':%');
+        } else {
+            $queryBuilder->where(
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->andX("connection.sourceObjectId = :nodeId", "connection.sourceObjectClass = :nodeClass"),
+                        $queryBuilder->expr()->andX("connection.destinationObjectId = :nodeId", "connection.destinationObjectClass = :nodeClass")
+                    )
+                );
+        }
+        $queryBuilder->setParameter("nodeClass", $nodeInformations['object_class']);
+        $queryBuilder->setParameter("nodeId", $nodeInformations['object_id']);
 
-        if (array_key_exists('type', $filters)) {
+        if (array_key_exists('type', $filters) && $filters['type']) {
+            $queryBuilder->andWhere("connection.type = :type");
+            $queryBuilder->setParameter("type", $filters['type']);
+        }
+
+        if (array_key_exists('distance', $filters) && $filters['distance'] > 0) {
+            $queryBuilder->andWhere("connection.distance = :distance");
+            $queryBuilder->setParameter("distance", $filters['distance']);
+        }
+
+        $connections = $queryBuilder->getQuery()->getResult();
+
+        foreach ($connections as $connection) {
+            $this->fillConnection($connection);
+        }
+
+        return $connections;
+    }
+
+    /**
+     * @param array[]\Kitano\ConnectionBundle\Model\NodeInterface $nodes
+     * @param array $filters
+     *
+     * @return array
+     */
+    public function getConnectionsByLinkerNodes(array $nodes, array $filters = array())
+    {
+        $nodeTree = array();
+        foreach($nodes as $key => $node) {
+            if(!$node instanceof NodeInterface) {
+                throw new NotSupportedNodeException(sprintf('Node "%s" should be an instance of "\Kitano\ConnectionBundle\Model\NodeInterface". "%s" given.', $key, gettype($node)));
+            }
+            $nodeTree[] = $node->getId();
+        }
+
+        $queryBuilder = $this->createQueryBuilder('connection');
+        $queryBuilder->select('connection')
+            ->where("connection.linkerNodes LIKE :linkerNodes")
+            ->setParameter('linkerNodes', '%:'.  trim(implode(':', $nodeTree), ':').':%')
+        ;
+
+        if (array_key_exists('type', $filters) && $filters['type']) {
             $queryBuilder->andWhere("connection.type = :type");
             $queryBuilder->setParameter("type", $filters['type']);
         }
@@ -149,7 +209,7 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
                     )
                 )
             );
-        
+
         $queryBuilder->setParameters(array(
             'nodeAClass' => $nodeAInformations['object_class'],
             'nodeBClass' => $nodeBInformations['object_class'],
@@ -157,9 +217,14 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
             'nodeBId' => $nodeBInformations['object_id'],
         ));
 
-        if (array_key_exists('type', $filters)) {
+        if (array_key_exists('type', $filters) && $filters['type']) {
             $queryBuilder->andWhere("connection.type = :type");
             $queryBuilder->setParameter("type", $filters['type']);
+        }
+
+        if (array_key_exists('distance', $filters) && $filters['distance'] > 0) {
+            $queryBuilder->andWhere("connection.distance = :distance");
+            $queryBuilder->setParameter("distance", $filters['distance']);
         }
 
         return ($queryBuilder->getQuery()->getSingleScalarResult() > 0);

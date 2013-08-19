@@ -7,6 +7,8 @@
         <field name="destinationObjectClass" type="string" column="destination_object_class" length="255"/>
 
         <field name="type" type="string" column="type" length="255"/>
+        <field name="distance" type="integer" column="distance"/>
+        <field name="linkerNodes" type="text" column="linker_nodes"/>
         <field name="createdAt" type="datetime" column="created_at" />
     </mapped-superclass>
 </doctrine-mapping>

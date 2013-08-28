@@ -8,6 +8,7 @@ use Doctrine\Common\EventSubscriber;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Kitano\ConnectionBundle\Model\NodeInterface;
+use FOS\UserBundle\Model\UserInterface;
 
 class DoctrineOrmListener implements EventSubscriber
 {
@@ -19,7 +20,8 @@ class DoctrineOrmListener implements EventSubscriber
     public function getSubscribedEvents()
     {
         return array(
-            'preRemove'
+            'preRemove',
+            'postUpdate'
         );
     }
 
@@ -32,6 +34,28 @@ class DoctrineOrmListener implements EventSubscriber
         $entity = $eventArgs->getEntity();
 
         if ($entity instanceof NodeInterface) {
+            if ($this->getConnectionManager()->hasConnections($entity)) {
+                $connections = $this->getConnectionManager()->getConnections($entity, array(), true);
+
+                foreach ($connections as $connection) {
+                    $eventArgs->getEntityManager()->remove($connection);
+                }
+
+                $eventArgs->getEntityManager()->flush(); //Necessary
+            }
+        }
+    }
+
+
+    /**
+     *
+     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
+     */
+    public function postUpdate(LifecycleEventArgs $eventArgs)
+    {
+        $entity = $eventArgs->getEntity();
+
+        if (($entity instanceof UserInterface) && $entity->isLocked()) {
             if ($this->getConnectionManager()->hasConnections($entity)) {
                 $connections = $this->getConnectionManager()->getConnections($entity, array(), true);
 

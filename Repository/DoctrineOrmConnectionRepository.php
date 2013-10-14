@@ -67,6 +67,39 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
     }
 
     /**
+     *
+     * @param \Kitano\ConnectionBundle\Model\NodeInterface $node
+     * @param array $filters
+     * @return integer
+     */
+    public function countConnectionsWithSource(NodeInterface $node, array $filters = array())
+    {
+        $objectInformations = $this->extractMetadata($node);
+
+        $objectClass = $objectInformations["object_class"];
+        $objectId = $objectInformations["object_id"];
+
+        $queryBuilder = $this->createQueryBuilder("connection");
+        $queryBuilder->select('count(connection)');
+        $queryBuilder->where("connection.sourceObjectClass = :objectClass");
+        $queryBuilder->andWhere("connection.sourceObjectId = :objectId");
+        $queryBuilder->setParameter("objectClass", $objectClass);
+        $queryBuilder->setParameter("objectId", $objectId);
+
+        if (array_key_exists('type', $filters) && $filters['type']) {
+            $queryBuilder->andWhere("connection.type = :type");
+            $queryBuilder->setParameter("type", $filters['type']);
+        }
+
+        if (array_key_exists('distance', $filters) && $filters['distance'] > 0) {
+            $queryBuilder->andWhere("connection.distance = :distance");
+            $queryBuilder->setParameter("distance", $filters['distance']);
+        }
+
+        return (int)$queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function getConnectionsWithDestination(NodeInterface $node, array $filters = array())
@@ -99,6 +132,39 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
         }
 
         return $connections;
+    }
+
+    /**
+     *
+     * @param \Kitano\ConnectionBundle\Model\NodeInterface $node
+     * @param array $filters
+     * @return integer
+     */
+    public function countConnectionsWithDestination(NodeInterface $node, array $filters = array())
+    {
+        $objectInformations = $this->extractMetadata($node);
+
+        $objectClass = $objectInformations["object_class"];
+        $objectId = $objectInformations["object_id"];
+
+        $queryBuilder = $this->createQueryBuilder("connection");
+        $queryBuilder->select('count(connection)');
+        $queryBuilder->where("connection.destinationObjectClass = :objectClass");
+        $queryBuilder->andWhere("connection.destinationObjectId = :objectId");
+        $queryBuilder->setParameter("objectClass", $objectClass);
+        $queryBuilder->setParameter("objectId", $objectId);
+
+        if (array_key_exists('type', $filters) && $filters['type']) {
+            $queryBuilder->andWhere("connection.type = :type");
+            $queryBuilder->setParameter("type", $filters['type']);
+        }
+
+        if (array_key_exists('distance', $filters) && $filters['distance'] > 0) {
+            $queryBuilder->andWhere("connection.distance = :distance");
+            $queryBuilder->setParameter("distance", $filters['distance']);
+        }
+
+        return (int)$queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -148,6 +214,53 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
         }
 
         return $connections;
+    }
+
+    /**
+     *
+     * @param \Kitano\ConnectionBundle\Model\NodeInterface $node
+     * @param array $filters
+     * @param type $includeIndirectConnections
+     * @return integer
+     */
+    public function countConnections(NodeInterface $node, array $filters = array(), $includeIndirectConnections = false)
+    {
+        $nodeInformations = $this->extractMetadata($node);
+
+        $queryBuilder = $this->createQueryBuilder('connection');
+
+        $queryBuilder->select('count(connection)');
+        if($includeIndirectConnections) {
+            $queryBuilder->where(
+                $queryBuilder->expr()->orX(
+                    "connection.linkerNodes LIKE :linkerNodes",
+                    $queryBuilder->expr()->andX("connection.sourceObjectId = :nodeId", "connection.sourceObjectClass = :nodeClass"),
+                    $queryBuilder->expr()->andX("connection.destinationObjectId = :nodeId", "connection.destinationObjectClass = :nodeClass")
+                )
+            );
+            $queryBuilder->setParameter('linkerNodes', '%:'.$node->getId().':%');
+        } else {
+            $queryBuilder->where(
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->andX("connection.sourceObjectId = :nodeId", "connection.sourceObjectClass = :nodeClass"),
+                        $queryBuilder->expr()->andX("connection.destinationObjectId = :nodeId", "connection.destinationObjectClass = :nodeClass")
+                    )
+                );
+        }
+        $queryBuilder->setParameter("nodeClass", $nodeInformations['object_class']);
+        $queryBuilder->setParameter("nodeId", $nodeInformations['object_id']);
+
+        if (array_key_exists('type', $filters) && $filters['type']) {
+            $queryBuilder->andWhere("connection.type = :type");
+            $queryBuilder->setParameter("type", $filters['type']);
+        }
+
+        if (array_key_exists('distance', $filters) && $filters['distance'] > 0) {
+            $queryBuilder->andWhere("connection.distance = :distance");
+            $queryBuilder->setParameter("distance", $filters['distance']);
+        }
+
+        return (int)$queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     /**

@@ -188,6 +188,17 @@ class ConnectionManager implements ConnectionManagerInterface
      */
     protected function createConnection(NodeInterface $source, NodeInterface $destination, $type)
     {
+        /**
+         * Connections are not bidirectional anymore.
+         * TODO: Once you want to allow both unidirectional and bidirectional connections,
+         * take into account the commented code below
+         */
+//        if ($this->areConnected($source, $destination, array('type' => $type, 'distance' => 1))) {
+//            throw new AlreadyConnectedException(
+//            sprintf('Objects %s (%s) and %s (%s) are already connected', get_class($source), $source->getId(), get_class($destination), $destination->getId()
+//            )
+//            );
+//        }
         if ($this->isConnectedTo($source, $destination, array('type' => $type, 'distance' => 1))) {
             throw new AlreadyConnectedException(
             sprintf('Objects %s (%s) and %s (%s) are already connected', get_class($source), $source->getId(), get_class($destination), $destination->getId()
@@ -199,16 +210,22 @@ class ConnectionManager implements ConnectionManagerInterface
 
         $sourceConnections = $this->getConnections($source, array('type' => $type));
         $destinationConnections = $this->getConnections($destination, array('type' => $type));
-        foreach ($sourceConnections as $key => $sourceConnection) {
-            $isSelfConnection = intval($sourceConnection->getSourceObjectId()) === $destination->getId();
-            $isSelfConnection |= intval($sourceConnection->getDestinationObjectId()) === $destination->getId();
-            if ($isSelfConnection) {
-                $sourceConnection->setDistance(1);
-                $sourceConnection->setLinkerNodes(array());
-                $relatedConnections[] = $sourceConnection;
-                unset($sourceConnections[$key]);
-            }
-        }
+        
+        /**
+         * Connections are not bidirectional anymore.
+         * TODO: Once you want to allow both unidirectional and bidirectional connections,
+         * take into account the commented code below
+         */
+//        foreach ($sourceConnections as $key => $sourceConnection) {
+//            $isSelfConnection = intval($sourceConnection->getSourceObjectId()) === $destination->getId();
+//            $isSelfConnection |= intval($sourceConnection->getDestinationObjectId()) === $destination->getId();
+//            if ($isSelfConnection) {
+//                $sourceConnection->setDistance(1);
+//                $sourceConnection->setLinkerNodes(array());
+//                $relatedConnections[] = $sourceConnection;
+//                unset($sourceConnections[$key]);
+//            }
+//        }
         if (empty($relatedConnections)) {
             $newConnection = $this->getConnectionRepository()->createEmptyConnection();
             $newConnection->setType($type);

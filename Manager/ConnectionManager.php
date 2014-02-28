@@ -210,7 +210,7 @@ class ConnectionManager implements ConnectionManagerInterface
 
         $sourceConnections = $this->getConnections($source, array('type' => $type));
         $destinationConnections = $this->getConnections($destination, array('type' => $type));
-        
+
         /**
          * Connections are not bidirectional anymore.
          * TODO: Once you want to allow both unidirectional and bidirectional connections,
@@ -245,7 +245,10 @@ class ConnectionManager implements ConnectionManagerInterface
         foreach ($sourceConnections as $sourceConnection) {
             $isSelfConnection = $sourceConnection->getSourceObjectId() === $destination->getId();
             $isSelfConnection |= $sourceConnection->getDestinationObjectId() === $destination->getId();
-            if (!$isSelfConnection) {
+
+            $acceptConnectionNesting = $sourceConnection->getDestinationObjectClass() == $sourceConnection->getSourceObjectClass();
+
+            if (!$isSelfConnection && $acceptConnectionNesting) {
                 //Create a new connection for the given destination node based on the current source node connection
                 $newConnection = $this->getConnectionRepository()->createEmptyConnection();
                 $newConnection->setType($sourceConnection->getType());

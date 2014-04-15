@@ -305,8 +305,17 @@ class ConnectionManager implements ConnectionManagerInterface
             );
         }
 
+        $bidirectional = !isset($filters['bidirectional']) || $filters['bidirectional'];
+
+        unset($filters['bidirectional']);
         $this->filterValidator->validateFilters($filters);
-        $connections = $this->getConnectionRepository()->getConnections($source, $filters);
+
+        if($bidirectional) {
+            $connections = $this->getConnectionRepository()->getConnections($source, $filters);
+        } else {
+            $connections = $this->getConnectionsFrom($source, $filters);
+        }
+
 
         foreach ($connections as $i => $connection) {
             if ($connection->getDestination() !== $destination && $connection->getSource() !== $destination) {

@@ -41,12 +41,14 @@ class Configuration implements ConfigurationInterface
         $supportedDrivers = array('doctrine_orm', 'doctrine_mongodb', 'array', 'custom');
 
         $node
+            ->addDefaultsIfNotSet()
             ->children()
                 ->arrayNode('persistence')
-                ->isRequired()
                 ->cannotBeEmpty()
+                    ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('type')
+                            ->defaultValue('doctrine_orm')
                             ->validate()
                                 ->ifNotInArray($supportedDrivers)
                                 ->thenInvalid('The driver %s is not supported. Please choose one of '.json_encode($supportedDrivers))
@@ -56,8 +58,9 @@ class Configuration implements ConfigurationInterface
                             ->cannotBeEmpty()
                         ->end()
                         ->arrayNode('managed_class')
+                            ->addDefaultsIfNotSet()
                             ->children()
-                                ->scalarNode('connection')->cannotBeEmpty()->end()
+                                ->scalarNode('connection')->defaultValue('Undf\ConnectBundle\Entity\Connection')->cannotBeEmpty()->end()
                             ->end()
                         ->end()
                     ->end()

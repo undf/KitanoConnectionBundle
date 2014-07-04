@@ -170,6 +170,20 @@ class ConnectionManager implements ConnectionManagerInterface
     }
 
     /**
+     *
+     * @param \Kitano\ConnectionBundle\Model\NodeInterface $source
+     * @param \Kitano\ConnectionBundle\Model\NodeInterface $destination
+     * @param array $filters
+     * @return ConnectionInterface
+     */
+    public function getConnectionBetween(NodeInterface $source, NodeInterface $destination, array $filters = array())
+    {
+        $this->filterValidator->validateFilters($filters);
+
+        return $this->getConnectionRepository()->getConnectionsWithSourceAndDestination($source, $destination, $filters);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function getConnections(NodeInterface $node, array $filters = array(), $includeIndirectConnections = false)

@@ -167,6 +167,43 @@ class DoctrineOrmConnectionRepository extends EntityRepository implements Connec
         return (int)$queryBuilder->getQuery()->getSingleScalarResult();
     }
 
+    public function getConnectionsWithSourceAndDestination(NodeInterface $source, NodeInterface $destination, array $filters = array())
+    {
+        $sourceInformations = $this->extractMetadata($source);
+        $destinationInformations = $this->extractMetadata($destination);
+
+        $sourceClass = $sourceInformations["object_class"];
+        $sourceId = $sourceInformations["object_id"];
+        $destinationClass = $destinationInformations["object_class"];
+        $destinationId = $destinationInformations["object_id"];
+
+        $queryBuilder = $this->createQueryBuilder("connection");
+        $queryBuilder->where("connection.sourceObjectClass = :sourceClass");
+        $queryBuilder->andWhere("connection.sourceObjectId = :sourceId");
+        $queryBuilder->andWhere("connection.destinationObjectClass = :destinationClass");
+        $queryBuilder->andWhere("connection.destinationObjectId = :destinationId");
+        $queryBuilder->setParameter("sourceClass", $sourceClass);
+        $queryBuilder->setParameter("sourceId", $sourceId);
+        $queryBuilder->setParameter("destinationClass", $destinationClass);
+        $queryBuilder->setParameter("destinationId", $destinationId);
+
+        if (array_key_exists('type', $filters) && $filters['type']) {
+            $queryBuilder->andWhere("connection.type = :type");
+            $queryBuilder->setParameter("type", $filters['type']);
+        }
+
+        if (array_key_exists('distance', $filters) && $filters['distance'] > 0) {
+            $queryBuilder->andWhere("connection.distance = :distance");
+            $queryBuilder->setParameter("distance", $filters['distance']);
+        }
+
+        $connection = $queryBuilder->getQuery()->getOneOrNullResult();
+        if($connection) {
+            $this->fillConnection($connection);
+        }
+        return $connection;
+    }
+
     /**
      * @{@inheritDoc}
      */

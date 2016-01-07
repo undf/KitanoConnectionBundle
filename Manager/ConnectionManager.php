@@ -37,6 +37,7 @@ class ConnectionManager implements ConnectionManagerInterface
     public function connect(NodeInterface $source, NodeInterface $destination, $type)
     {
         $connections = $this->createConnection($source, $destination, $type);
+
         $this->getConnectionRepository()->update($connections);
 
         if ($this->dispatcher) {
@@ -250,7 +251,7 @@ class ConnectionManager implements ConnectionManagerInterface
             $relatedConnections[] = $newConnection;
         }
 
-        return array_merge($relatedConnections, $this->createRelatedConnections($source, $sourceConnections, $destination, $destinationConnections), $this->createRelatedConnections($destination, $destinationConnections, $source, $sourceConnections));
+        return $relatedConnections;
     }
 
     protected function createRelatedConnections(NodeInterface $source, array $sourceConnections, NodeInterface $destination, array $destinationConnections)
